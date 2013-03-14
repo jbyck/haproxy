@@ -1,3 +1,8 @@
+## 1.2.1
+
+* Forking out of community version.
+* Check for if Quandl maintenance is defined on node and link to custom error pages.
+
 ## v1.2.0:
 
 * [COOK-1936] - use frontend / backend logic

@@ -19,6 +19,12 @@ defaults
   option <%= option %>
   <% end -%>
   balance  <%= node['haproxy']['balance_algorithm'] %>
+  <% if node['quandl'] and node['quandl']['maintenance'] %>
+  <% node['quandl']['maintenance']['errors'].each do |err| %>
+  errorfile <%= err %> <%= "#{node.quandl.maintenance.path}/maintenance.html" %>
+  <% end %>
+  <% end %>
+  
 
 # Set up application listeners here.
 
