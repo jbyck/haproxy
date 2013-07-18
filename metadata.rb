@@ -1,16 +1,18 @@
 name              "haproxy"
-maintainer        "Opscode, Inc."
-maintainer_email  "cookbooks@opscode.com"
+maintainer        "Quandl"
+maintainer_email  "dev@quandl.com"
 license           "Apache 2.0"
-description       "Installs and configures haproxy"
+description       "Installs and configures haproxy. Forked from Opscode HAProxy"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version           "1.2.1"
+version           "1.3.0"
 
 recipe "haproxy", "Installs and configures haproxy"
 recipe "haproxy::app_lb", "Installs and configures haproxy by searching for nodes of a particular role"
+recipe "haproxy::logs", "Configures haproxy file log and install log rotation"
 
 %w{ debian ubuntu }.each do |os|
   supports os
 end
 
 depends           "cpu", ">= 0.2.0"
+depends           "logrotate"

@@ -1,0 +1,6 @@
+$ModLoad imudp
+$UDPServerAddress <%= @log[:host] %>
+$UDPServerRun 514
+
+local1.* -<%= @log[:location]%>
+& ~

@@ -1,0 +1,7 @@
+acl <%= acl_name(@acl) %> <%= @acl[:criteria] %> <% @acl[:flags] %> <%= @acl[:operator] %> <%= @acl[:values].join(' ') %>
+<% if @acl.key?(:minimum) and @acl[:minimum].kind_of?(Fixnum) %>
+  acl <%= acl_name(@acl) %>-available nbsrv(<%= backend_acl_name(@acl) %>) ge <%= @acl[:minimum] %>
+  use_backend <%= backend_acl_name(@acl) %> if <%= acl_name(@acl) %> <%= acl_name(@acl) %>-available
+<% else %>
+  use_backend <%= backend_acl_name(@acl) %> if <%= acl_name(@acl) %>
+<% end %>

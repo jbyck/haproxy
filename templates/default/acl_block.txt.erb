@@ -1,0 +1,9 @@
+backend <%= backend_acl_name(@acl) %>
+<% if @members and @members.respond_to?(:each) -%>
+<% @members.each do |member| -%>
+  <%= acl_server(@acl, member) %>
+<% end -%>
+<% end -%>
+<% unless !@acl.key?(:httpchk) or @acl[:httpchk].empty? -%>
+  option httpchk <%= @acl[:httpchk] %>
+<% end -%>

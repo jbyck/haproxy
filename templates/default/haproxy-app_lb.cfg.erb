@@ -1,12 +1,8 @@
 global
-  log 127.0.0.1   local0
-  log 127.0.0.1   local1 notice
-  #log loghost    local0 info
-  maxconn <%= node['haproxy']['global_max_connections'] %>
-  #debug
-  #quiet
-  user <%= node['haproxy']['user'] %>
-  group <%= node['haproxy']['group'] %>
+  log <%= global_log_line %>
+  maxconn <%= node[:haproxy][:global_max_connections] %>
+  user <%= node[:haproxy][:user] %>
+  group <%= node[:haproxy][:group] %>
 
 defaults
   log     global
@@ -18,10 +14,10 @@ defaults
   <% @defaults_options.sort.each do | option | -%>
   option <%= option %>
   <% end -%>
-  balance  <%= node['haproxy']['balance_algorithm'] %>
-  <% if node['quandl'] and node['quandl']['maintenance'] %>
-  <% node['quandl']['maintenance']['errors'].each do |err| %>
-  errorfile <%= err %> <%= "#{node.quandl.maintenance.path}/maintenance.html" %>
+  balance  <%= node[:haproxy][:balance_algorithm] %>
+  <% if node[:haproxy].attribute?(:custom_errors) and node[:haproxy][:custom_errors].respond_to?(:each)%>
+  <% node[:haproxy][:custom_errors].each do |error| %>
+  errorfile <%= error[:status] %> <%= error[:path] %>
   <% end %>
   <% end %>
   
@@ -29,40 +25,49 @@ defaults
 # Set up application listeners here.
 
 frontend http
-  maxconn <%= node['haproxy']['frontend_max_connections'] %>
-  bind <%= node['haproxy']['incoming_address'] %>:<%= node['haproxy']['incoming_port'] %>
+  maxconn <%= node[:haproxy][:frontend_max_connections] %>
+  bind <%= node[:haproxy][:incoming_address] %>:<%= node[:haproxy][:incoming_port] %>
+  <% if @acls and @acls.respond_to?(:each) %>
+  <% @acls.each do |acl| -%>
+  <%= render 'acl_rule.txt.erb', :local => false, :variables => {:acl => acl} %>
+  <% end -%>
+  <% end -%>
   default_backend servers-http
 
-<% if node['haproxy']['enable_ssl'] -%>
+<% if node[:haproxy][:enable_ssl] -%>
 frontend https
-  maxconn <%= node['haproxy']['frontend_ssl_max_connections'] %>
+  maxconn <%= node[:haproxy][:frontend_ssl_max_connections] %>
   mode tcp
-  bind <%= node['haproxy']['ssl_incoming_address'] %>:<%= node['haproxy']['ssl_incoming_port'] %>
+  bind <%= node[:haproxy][:ssl_incoming_address] %>:<%= node[:haproxy][:ssl_incoming_port] %>
   default_backend servers-https
 <% end -%>
 
+<% node[:haproxy][:custom_acls].each do |acl| %>
+<%= render 'acl_block.txt.erb', :local => false, :variables => {:acl => acl, :members => @acl_members[acl[:name].to_sym] } %>
+<% end %>
+
 backend servers-http
   <% @pool_members.each do |member| -%>
-  server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node['haproxy']['member_port'] %> weight 1 maxconn <%= node['haproxy']['member_max_connections'] %> check
+  server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node[:haproxy][:member_port] %> weight 1 maxconn <%= node[:haproxy][:member_max_connections] %> check
   <% end -%>
-  <% if node["haproxy"]["httpchk"] -%>
-  option httpchk <%= node["haproxy"]["httpchk"] %>
+  <% if node[:haproxy][:httpchk] -%>
+  option httpchk <%= node[:haproxy][:httpchk] %>
   <% end -%>
 
-<% if node['haproxy']['enable_ssl'] -%>
+<% if node[:haproxy][:enable_ssl] -%>
 backend servers-https
   mode tcp
   option ssl-hello-chk
   <% @pool_members.each do |member| -%>
-  server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node['haproxy']['ssl_member_port'] %> weight 1 maxconn <%= node['haproxy']['member_max_connections'] %> check
+  server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node[:haproxy][:ssl_member_port] %> weight 1 maxconn <%= node[:haproxy][:member_max_connections] %> check
   <% end -%>
-  <% if node["haproxy"]["ssl_httpchk"] -%>
-  option httpchk <%= node["haproxy"]["ssl_httpchk"] %>
+  <% if node[:haproxy][:ssl_httpchk] -%>
+  option httpchk <%= node[:haproxy][:ssl_httpchk] %>
   <% end -%>
 <% end -%>
 
-<% if node['haproxy']['enable_admin'] -%>
-listen admin <%= node['haproxy']['admin']['address_bind'] %>:<%= node['haproxy']['admin']['port'] %>
+<% if node[:haproxy][:enable_admin] -%>
+listen admin <%= node[:haproxy][:admin][:address_bind] %>:<%= node[:haproxy][:admin][:port] %>
   mode http
   stats uri /
 <% end -%>
