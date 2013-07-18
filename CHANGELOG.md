@@ -1,4 +1,11 @@
-## 1.2.1
+## v1.3.0
+
+* Symbolize keys
+* Move functions to default lib.
+* Add support for custom_acls and custom_errors. app_lb recipe will search for member nodes for ACLs (if role specified). Add lib and partials for generating configs for ACLs.
+* Add logs recipe for writing rsyslog to file for Haproxy. Add log rotation.
+
+## v1.2.1
 
 * Forking out of community version.
 * Check for if Quandl maintenance is defined on node and link to custom error pages.
